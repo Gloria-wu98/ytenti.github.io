@@ -1,1184 +1,604 @@
-{\rtf1\ansi\ansicpg950\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset136 PingFangTC-Regular;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww12720\viewh7240\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>看影片玩台語 - 互動問答遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff; /* 淡藍色背景 */
+        }
+        /* 閃爍動畫 */
+        @keyframes flash-correct {
+            0%, 100% { box-shadow: 0 0 8px 4px #22c55e; opacity: 1; } /* 綠色光暈 */
+            50% { box-shadow: none; opacity: 0.7; }
+        }
+        .flash-correct {
+            animation: flash-correct 0.6s ease-in-out;
+        }
+        .correct-answer-highlight {
+             background-color: #dcfce7 !important; /* 淡綠色背景 */
+             border: 2px solid #22c55e; /* 綠色邊框 */
+             color: #166534 !important;
+        }
+        .incorrect-answer-highlight {
+            background-color: #fee2e2 !important; /* 淡紅色背景 */
+            border: 2px solid #ef4444; /* 紅色邊框 */
+            color: #991b1b !important;
+            opacity: 0.7;
+        }
+        .creator-info {
+            font-size: 0.875rem;
+            color: #4b5563;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #e0f2fe;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .youtube-link a {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            color: #065f46; /* 深綠色 */
+        }
+        .message-box {
+            min-height: 3rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .message-success {
+            background-color: #dcfce7; color: #166534;
+        }
+        .message-error {
+            background-color: #fee2e2; color: #991b1b;
+        }
+        .message-info {
+            background-color: #e0f2fe; color: #075985;
+        }
+        .button {
+            background-color: #10b981; /* 按鈕背景色 (綠色) */
+            color: white;
+            padding: 0.75rem 1.5rem; /* 增加按鈕大小 */
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+            font-weight: bold;
+            width: 100%; /* 按鈕寬度 */
+            max-width: 300px; /* 最大寬度 */
+            margin-top: 1rem; /* 與上方元素間距 */
+        }
+        .button:hover:not(:disabled) { /* 確保 :hover 只在非禁用時生效 */
+            background-color: #059669;
+        }
+        .button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .option-button {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; /* 加入 box-shadow transition */
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.5rem; /* 選項間距 */
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        .option-button:hover:not(:disabled) {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.8; /* 讓禁用的按鈕稍微變淡 */
+        }
+        #questionArea {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 1.25rem; /* 增大題目字體 */
+            font-weight: bold;
+            color: #1e3a8a; /* 深藍色 */
+            width: 100%;
+            max-width: 600px;
+            min-height: 5rem; /* 給予最小高度避免內容跳動 */
+            display: flex; /* 使用 flex 垂直置中 (如果需要) */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* 讓 span 換行 */
+        }
+        #questionArea .chinese {
+             font-size: 1rem;
+             color: #4b5563;
+             font-weight: normal;
+             margin-top: 0.25rem;
+             display: block;
+        }
+        #optionsArea {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+         #roundSummary {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #roundSummary h3 {
+            text-align: center;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        #summaryList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #summaryList li {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.75rem 0;
+            font-size: 0.875rem;
+        }
+         #summaryList li:last-child {
+            border-bottom: none;
+        }
+        .summary-question {
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        .summary-answer {
+            color: #166534; /* 綠色標示正確答案 */
+        }
+        .summary-user-answer.correct {
+             color: #16a34a; /* 答對時用亮綠色 */
+        }
+        .summary-user-answer.incorrect {
+             color: #dc2626; /* 答錯時用紅色 */
+             text-decoration: line-through; /* 刪除線 */
+             margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-sky-50 p-4 flex flex-col items-center min-h-screen">
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="zh-Hant">\
-<head>\
-    <meta charset="UTF-8">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
-    <title>
-\f1 \'ac\'dd\'bc\'76\'a4\'f9\'aa\'b1\'a5\'78\'bb\'79
-\f0  - 
-\f1 \'a4\'ac\'b0\'ca\'b0\'dd\'b5\'aa\'b9\'43\'c0\'b8
-\f0 </title>\
-    <script src="https://cdn.tailwindcss.com"></script>\
-    <link rel="preconnect" href="https://fonts.googleapis.com">\
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">\
-    <style>\
-        body \{\
-            font-family: 'Noto Sans TC', sans-serif;\
-            background-color: #f0f9ff; /* 
-\f1 \'b2\'48\'c2\'c5\'a6\'e2\'ad\'49\'b4\'ba
-\f0  */\
-        \}\
-        /* 
-\f1 \'b0\'7b\'c3\'7b\'b0\'ca\'b5\'65
-\f0  */\
-        @keyframes flash-correct \{\
-            0%, 100% \{ box-shadow: 0 0 8px 4px #22c55e; opacity: 1; \} /* 
-\f1 \'ba\'f1\'a6\'e2\'a5\'fa\'b7\'77
-\f0  */\
-            50% \{ box-shadow: none; opacity: 0.7; \}\
-        \}\
-        .flash-correct \{\
-            animation: flash-correct 0.6s ease-in-out;\
-        \}\
-        .correct-answer-highlight \{\
-             background-color: #dcfce7 !important; /* 
-\f1 \'b2\'48\'ba\'f1\'a6\'e2\'ad\'49\'b4\'ba
-\f0  */\
-             border: 2px solid #22c55e; /* 
-\f1 \'ba\'f1\'a6\'e2\'c3\'e4\'ae\'d8
-\f0  */\
-             color: #166534 !important;\
-        \}\
-        .incorrect-answer-highlight \{\
-            background-color: #fee2e2 !important; /* 
-\f1 \'b2\'48\'ac\'f5\'a6\'e2\'ad\'49\'b4\'ba
-\f0  */\
-            border: 2px solid #ef4444; /* 
-\f1 \'ac\'f5\'a6\'e2\'c3\'e4\'ae\'d8
-\f0  */\
-            color: #991b1b !important;\
-            opacity: 0.7;\
-        \}\
-        .creator-info \{\
-            font-size: 0.875rem;\
-            color: #4b5563;\
-            margin-top: 0.5rem;\
-            margin-bottom: 1rem;\
-            padding: 0.75rem;\
-            background-color: #e0f2fe;\
-            border-radius: 0.5rem;\
-            text-align: center;\
-        \}\
-        .youtube-link a \{\
-            color: #1d4ed8;\
-            text-decoration: underline;\
-        \}\
-        .game-info \{\
-            display: flex;\
-            justify-content: space-around;\
-            width: 100%;\
-            max-width: 600px;\
-            margin-bottom: 1rem;\
-            font-weight: bold;\
-            color: #065f46; /* 
-\f1 \'b2\'60\'ba\'f1\'a6\'e2
-\f0  */\
-        \}\
-        .message-box \{\
-            min-height: 3rem;\
-            padding: 0.75rem;\
-            margin-bottom: 1rem;\
-            border-radius: 0.5rem;\
-            font-weight: bold;\
-            text-align: center;\
-        \}\
-        .message-success \{\
-            background-color: #dcfce7; color: #166534;\
-        \}\
-        .message-error \{\
-            background-color: #fee2e2; color: #991b1b;\
-        \}\
-        .message-info \{\
-            background-color: #e0f2fe; color: #075985;\
-        \}\
-        .button \{\
-            background-color: #10b981; /* 
-\f1 \'ab\'f6\'b6\'73\'ad\'49\'b4\'ba\'a6\'e2
-\f0  (
-\f1 \'ba\'f1\'a6\'e2
-\f0 ) */\
-            color: white;\
-            padding: 0.75rem 1.5rem; /* 
-\f1 \'bc\'57\'a5\'5b\'ab\'f6\'b6\'73\'a4\'6a\'a4\'70
-\f0  */\
-            border-radius: 0.375rem;\
-            cursor: pointer;\
-            transition: background-color 0.3s;\
-            border: none;\
-            font-weight: bold;\
-            width: 100%; /* 
-\f1 \'ab\'f6\'b6\'73\'bc\'65\'ab\'d7
-\f0  */\
-            max-width: 300px; /* 
-\f1 \'b3\'cc\'a4\'6a\'bc\'65\'ab\'d7
-\f0  */\
-            margin-top: 1rem; /* 
-\f1 \'bb\'50\'a4\'57\'a4\'e8\'a4\'b8\'af\'c0\'b6\'a1\'b6\'5a
-\f0  */\
-        \}\
-        .button:hover:not(:disabled) \{ /* 
-\f1 \'bd\'54\'ab\'4f
-\f0  :hover 
-\f1 \'a5\'75\'a6\'62\'ab\'44\'b8\'54\'a5\'ce\'ae\'c9\'a5\'cd\'ae\'c4
-\f0  */\
-            background-color: #059669;\
-        \}\
-        .button:disabled \{\
-            background-color: #9ca3af;\
-            cursor: not-allowed;\
-        \}\
-        .option-button \{\
-            background-color: #ffffff;\
-            color: #374151;\
-            border: 1px solid #d1d5db;\
-            padding: 0.75rem;\
-            border-radius: 0.375rem;\
-            cursor: pointer;\
-            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; /* 
-\f1 \'a5\'5b\'a4\'4a
-\f0  box-shadow transition */\
-            width: 100%;\
-            text-align: center;\
-            margin-bottom: 0.5rem; /* 
-\f1 \'bf\'ef\'b6\'b5\'b6\'a1\'b6\'5a
-\f0  */\
-            font-size: 0.875rem;\
-            line-height: 1.25rem;\
-        \}\
-        .option-button:hover:not(:disabled) \{\
-            background-color: #f3f4f6;\
-            border-color: #9ca3af;\
-        \}\
-        .option-button:disabled \{\
-            cursor: not-allowed;\
-            opacity: 0.8; /* 
-\f1 \'c5\'fd\'b8\'54\'a5\'ce\'aa\'ba\'ab\'f6\'b6\'73\'b5\'79\'b7\'4c\'c5\'dc\'b2\'48
-\f0  */\
-        \}\
-        #questionArea \{\
-            background-color: #ffffff;\
-            padding: 1.5rem;\
-            border-radius: 0.5rem;\
-            margin-bottom: 1rem;\
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);\
-            text-align: center;\
-            font-size: 1.25rem; /* 
-\f1 \'bc\'57\'a4\'6a\'c3\'44\'a5\'d8\'a6\'72\'c5\'e9
-\f0  */\
-            font-weight: bold;\
-            color: #1e3a8a; /* 
-\f1 \'b2\'60\'c2\'c5\'a6\'e2
-\f0  */\
-            width: 100%;\
-            max-width: 600px;\
-            min-height: 5rem; /* 
-\f1 \'b5\'b9\'a4\'a9\'b3\'cc\'a4\'70\'b0\'aa\'ab\'d7\'c1\'d7\'a7\'4b\'a4\'ba\'ae\'65\'b8\'f5\'b0\'ca
-\f0  */\
-            display: flex; /* 
-\f1 \'a8\'cf\'a5\'ce
-\f0  flex 
-\f1 \'ab\'ab\'aa\'bd\'b8\'6d\'a4\'a4
-\f0  (
-\f1 \'a6\'70\'aa\'47\'bb\'dd\'ad\'6e
-\f0 ) */\
-            justify-content: center;\
-            align-items: center;\
-            flex-direction: column; /* 
-\f1 \'c5\'fd
-\f0  span 
-\f1 \'b4\'ab\'a6\'e6
-\f0  */\
-        \}\
-        #questionArea .chinese \{\
-             font-size: 1rem;\
-             color: #4b5563;\
-             font-weight: normal;\
-             margin-top: 0.25rem;\
-             display: block;\
-        \}\
-        #optionsArea \{\
-            width: 100%;\
-            max-width: 600px;\
-            display: flex;\
-            flex-direction: column;\
-            align-items: center;\
-        \}\
-         #roundSummary \{\
-            width: 100%;\
-            max-width: 600px;\
-            margin-top: 1rem;\
-            background-color: #ffffff;\
-            padding: 1rem;\
-            border-radius: 0.5rem;\
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);\
-        \}\
-        #roundSummary h3 \{\
-            text-align: center;\
-            font-weight: bold;\
-            color: #1e3a8a;\
-            margin-bottom: 1rem;\
-            font-size: 1.1rem;\
-        \}\
-        #summaryList \{\
-            list-style: none;\
-            padding: 0;\
-            margin: 0;\
-        \}\
-        #summaryList li \{\
-            border-bottom: 1px solid #e5e7eb;\
-            padding: 0.75rem 0;\
-            font-size: 0.875rem;\
-        \}\
-         #summaryList li:last-child \{\
-            border-bottom: none;\
-        \}\
-        .summary-question \{\
-            font-weight: bold;\
-            color: #374151;\
-            margin-bottom: 0.25rem;\
-        \}\
-        .summary-answer \{\
-            color: #166534; /* 
-\f1 \'ba\'f1\'a6\'e2\'bc\'d0\'a5\'dc\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0  */\
-        \}\
-        .summary-user-answer.correct \{\
-             color: #16a34a; /* 
-\f1 \'b5\'aa\'b9\'ef\'ae\'c9\'a5\'ce\'ab\'47\'ba\'f1\'a6\'e2
-\f0  */\
-        \}\
-        .summary-user-answer.incorrect \{\
-             color: #dc2626; /* 
-\f1 \'b5\'aa\'bf\'f9\'ae\'c9\'a5\'ce\'ac\'f5\'a6\'e2
-\f0  */\
-             text-decoration: line-through; /* 
-\f1 \'a7\'52\'b0\'a3\'bd\'75
-\f0  */\
-             margin-right: 0.5rem;\
-        \}\
-    </style>\
-</head>\
-<body class="bg-sky-50 p-4 flex flex-col items-center min-h-screen">\
-\
-    <h1 class="text-3xl font-bold text-sky-800 mb-2 text-center">
-\f1 \'ac\'dd\'bc\'76\'a4\'f9\'aa\'b1\'a5\'78\'bb\'79
-\f0 </h1>\
-\
-    <div class="creator-info w-full max-w-md">\
-        <p>
-\f1 \'b9\'43\'c0\'b8\'b3\'d0\'ab\'d8\'a4\'48\'a1\'47
-\f0 Gloria
-\f1 \'a7\'64\'a8\'71\'c4\'f5\'a6\'d1\'ae\'76
-\f0  (Google
-\f1 \'bb\'7b\'c3\'d2\'c1\'bf\'ae\'76\'a1\'41\'a5\'78\'bb\'79\'bb\'7b\'c3\'d2\'b0\'aa\'af\'c5\'c3\'d2\'ae\'d1\'a1\'41\'ad\'5e\'bb\'79\'b6\'a1\'a5\'78\'bb\'79\'b1\'d0\'ae\'76
-\f0 )</p>\
-        <p class="youtube-link mt-1">\
-            
-\f1 \'b0\'d1\'a6\'d2\'bc\'76\'a4\'f9\'a1\'47
-\f0 <a href="https://youtu.be/PrF6aT8mi_c?si=SUJtXRbfiitB2kU1
-\f1 \'a1\'41\'a5\'64\'b5\'50\'a4\'c0\'a8\'e2\'c3\'fe\'a1\'47\'a5\'78\'bb\'79\'ba\'7e\'a6\'72\'a1\'41\'ad\'5e\'a4\'e5\'b9\'ef\'b7\'d3\'a1\'41\'a8\'43\'a6\'b8\'b9\'43\'c0\'b8\'a6\'40
-\f0 10
-\f1 \'c3\'44\'a1\'41\'b5\'aa\'b9\'ef\'b7\'7c\'a6\'b3\'bf\'f4\'a5\'d8\'ae\'c4\'aa\'47\'a1\'41\'b3\'cc\'ab\'e1\'b7\'7c\'b1\'4e\'a9\'d2\'a6\'b3\'b5\'aa\'ae\'d7\'aa\'ba\'a5\'78\'bb\'79\'ba\'7e\'a6\'72\'a9\'4d\'ad\'5e\'a4\'e5\'c2\'bd\'c4\'b6\'a1\'41\'a5\'5d\'a7\'74\'c1\'63\'c5\'e9\'a4\'a4\'a4\'e5\'b3\'a3\'a7\'65\'b2\'7b\'a1\'41\'a4\'e8\'ab\'4b\'be\'c7\'a5\'cd\'c0\'cb\'b5\'f8
-\f0 " target="_blank" rel="noopener noreferrer">
-\f1 \'c2\'49\'a6\'b9\'c6\'5b\'ac\'dd
-\f0 </a>\
-        </p>\
-    </div>\
-\
-    <div class="game-info w-full max-w-md">\
-        <span id="score">
-\f1 \'a4\'c0\'bc\'c6\'a1\'47
-\f0 0</span>\
-        <span id="round">
-\f1 \'a6\'5e\'a6\'58\'a1\'47
-\f0 0</span>\
-        <span id="questionNumber">
-\f1 \'c3\'44\'a5\'d8\'a1\'47
-\f0 0 / 10</span>\
-    </div>\
-\
-    <div id="messageBox" class="message-box message-info w-full max-w-md">\
-        
-\f1 \'c2\'49\'c0\'bb\'a4\'55\'a4\'e8\'ab\'f6\'b6\'73\'b6\'7d\'a9\'6c\'b9\'43\'c0\'b8\'a1\'49
-\f0 \
-    </div>\
-\
-    <div id="quizArea" class="w-full flex flex-col items-center hidden">\
-        <div id="questionArea">\
-            </div>\
-        <div id="optionsArea">\
-            </div>\
-    </div>\
-\
-    <div id="roundSummary" class="hidden">\
-        <h3>
-\f1 \'a6\'5e\'a6\'58\'c1\'60\'b5\'b2
-\f0 </h3>\
-        <ul id="summaryList">\
-            </ul>\
-    </div>\
-\
-    <button id="controlButton" class="button mt-4">
-\f1 \'b6\'7d\'a9\'6c\'b9\'43\'c0\'b8
-\f0 </button>\
-\
-    <script>\
-        // --- 
-\f1 \'b1\'60\'bc\'c6\'a9\'77\'b8\'71
-\f0  ---\
-        const QUESTIONS_PER_ROUND = 10;\
-\
-        // --- 
-\f1 \'b9\'43\'c0\'b8\'b8\'ea\'ae\'c6
-\f0  ---\
-        const allCardData = [\
-            // 
-\f1 \'ab\'4f\'ab\'f9\'bb\'50\'a4\'a7\'ab\'65\'aa\'a9\'a5\'bb\'a4\'40\'ad\'50\'aa\'ba\'b5\'fc\'b7\'4a\'a6\'43\'aa\'ed
-\f0 \
-            \{ id: 1, taiwanese: '
-\f1 \'a4\'f4\'ba\'de
-\f0 ', chinese: '
-\f1 \'a4\'f4\'ba\'de
-\f0 ', english: 'Water pipe' \},\
-            \{ id: 2, taiwanese: '
-\f1 \'bc\'af\'a6\'ab\'a8\'ae
-\f0 ', chinese: '
-\f1 \'bc\'af\'a6\'ab\'a8\'ae
-\f0 /
-\f1 \'be\'f7\'a8\'ae
-\f0 ', english: 'Scooter/Motorcycle' \},\
-            \{ id: 3, taiwanese: '
-\f1 \'a8\'ae\'ba\'d7
-\f0 ', chinese: '
-\f1 \'a8\'ae\'ba\'d7
-\f0 ', english: 'Traffic accident' \},\
-            \{ id: 4, taiwanese: '
-\f1 \'b8\'fc
-\f0 ', chinese: '
-\f1 \'b8\'fc\'b0\'65
-\f0 ', english: 'To carry' \},\
-            \{ id: 5, taiwanese: '
-\f1 \'b6\'5b\'ad\'cb
-\f0 ', chinese: '
-\f1 \'b6\'5e\'ad\'cb
-\f0 ', english: 'To fall down' \},\
-            \{ id: 6, taiwanese: '
-\f1 \'c4\'b5\'a4\'e8
-\f0 ', chinese: '
-\f1 \'c4\'b5\'a4\'e8
-\f0 ', english: 'Police' \},\
-            \{ id: 7, taiwanese: '
-\f1 \'a6\'4d\'c0\'49
-\f0 ', chinese: '
-\f1 \'a6\'4d\'c0\'49
-\f0 ', english: 'Dangerous' \},\
-            \{ id: 8, taiwanese: '
-\f1 \'bb\'40
-\f0 ', chinese: '
-\f1 \'b3\'42\'bb\'40
-\f0 /
-\f1 \'bb\'40\'b4\'da
-\f0 ', english: 'To fine / Penalty' \},\
-            \{ id: 9, taiwanese: '
-\f1 \'ac\'64\'ae\'48\'a4\'48
-\f0 ', chinese: '
-\f1 \'a8\'6b\'a4\'48
-\f0 ', english: 'Man' \},\
-            \{ id: 10, taiwanese: '
-\f1 \'be\'ee
-\f0 ', chinese: '
-\f1 \'be\'ee\'aa\'ba
-\f0 ', english: 'Horizontal' \},\
-            \{ id: 11, taiwanese: '
-\f1 \'a5\'c1\'b2\'b3
-\f0 ', chinese: '
-\f1 \'a5\'c1\'b2\'b3
-\f0 ', english: 'Citizens / People' \},\
-            \{ id: 12, taiwanese: '
-\f1 \'b6\'ee\'b8\'f8
-\f0 ', chinese: '
-\f1 \'a6\'61\'a4\'57
-\f0 /
-\f1 \'a6\'61\'ad\'b1
-\f0 ', english: 'Ground' \},\
-            \{ id: 13, taiwanese: '
-\f1 \'a8\'ce\'ab\'76
-\f0 ', chinese: '
-\f1 \'a9\'af\'a6\'6e
-\f0 /
-\f1 \'a9\'af\'c1\'ab
-\f0 ', english: 'Fortunately' \},\
-            \{ id: 14, taiwanese: '
-\f1 \'aa\'ab\'a5\'f3
-\f0 ', chinese: '
-\f1 \'aa\'ab\'ab\'7e
-\f0 /
-\f1 \'aa\'46\'a6\'e8
-\f0 ', english: 'Items / Things' \},\
-            \{ id: 15, taiwanese: '
-\f1 \'b3\'57\'a9\'77
-\f0 ', chinese: '
-\f1 \'b3\'57\'a9\'77
-\f0 ', english: 'Regulations' \},\
-            \{ id: 16, taiwanese: '
-\f1 \'b5\'65\'ad\'b1
-\f0 ', chinese: '
-\f1 \'b5\'65\'ad\'b1
-\f0 ', english: 'Screen / Footage' \},\
-            \{ id: 17, taiwanese: '
-\f1 \'c3\'e4\'a5\'4a
-\f0 ', chinese: '
-\f1 \'ae\'c7\'c3\'e4
-\f0 ', english: 'Beside / Side' \},\
-            \{ id: 18, taiwanese: '
-\f1 \'d3\'e3\uc0\u32039 
-\f0 ', chinese: '
-\f1 \'bb\'b0\'a7\'d6
-\f0 /
-\f1 \'bb\'b0\'ba\'f2
-\f0 ', english: 'Quickly / Hurriedly' \},\
-            \{ id: 19, taiwanese: '
-\f1 \'b6\'ec\'bd\'a6
-\f0 ', chinese: '
-\f1 \'b6\'ec\'bd\'a6
-\f0 ', english: 'Plastic' \},\
-            \{ id: 20, taiwanese: '
-\f1 \'b5\'f4
-\f0 ', chinese: '
-\f1 \'b5\'f4\'b0\'c5
-\f0 ', english: 'To cut' \},\
-            \{ id: 21, taiwanese: '
-\f1 \uc0\u23485 \'ab\'d7
-\f0 ', chinese: '
-\f1 \'bc\'65\'ab\'d7
-\f0 ', english: 'Width' \},\
-            \{ id: 22, taiwanese: '
-\f1 \uc0\u38271 \'ab\'d7
-\f0 ', chinese: '
-\f1 \'aa\'f8\'ab\'d7
-\f0 ', english: 'Length' \},\
-            \{ id: 23, taiwanese: '
-\f1 \'a6\'6e\'b7\'4e\'a4\'48
-\f0 ', chinese: '
-\f1 \'a6\'6e\'a4\'df\'a4\'48
-\f0 ', english: 'Kindhearted people' \},\
-            \{ id: 24, taiwanese: '
-\f1 \'a4\'c1\'b8\'fb\'b5\'75
-\f0 ', chinese: '
-\f1 \'a4\'c1\'b5\'75\'a4\'40\'c2\'49
-\f0 ', english: 'Cut shorter' \},\
-            \{ id: 25, taiwanese: '
-\f1 \uc0\u36135 \'a8\'ae
-\f0 ', chinese: '
-\f1 \'b3\'66\'a8\'ae
-\f0 ', english: 'Truck' \},\
-            \{ id: 26, taiwanese: '
-\f1 \'a5\'d6\'a6\'d7\'b6\'cb
-\f0 ', chinese: '
-\f1 \'a5\'d6\'a5\'7e\'b6\'cb
-\f0 ', english: 'Minor abrasions' \},\
-            \{ id: 27, taiwanese: '
-\f1 \'ab\'f6\'a9\'4f
-\f0 ', chinese: '
-\f1 \'b3\'6f\'bc\'cb
-\f0 ', english: 'Like this / So' \},\
-            \{ id: 28, taiwanese: '
-\f1 \'b0\'4c\'ad\'75
-\f0 ', chinese: '
-\f1 \'a8\'d3\'a4\'a3\'a4\'ce
-\f0 ', english: 'Cannot make it / Too late' \},\
-            \{ id: 29, taiwanese: '
-\f1 \'a6\'ef\'a6\'ec
-\f0 ', chinese: '
-\f1 \'ad\'fe\'b8\'cc
-\f0 ', english: 'Where' \},\
-            \{ id: 30, taiwanese: '
-\f1 \'a4\'57\'a6\'6e
-\f0 ', chinese: '
-\f1 \'b3\'cc\'a6\'6e
-\f0 ', english: 'Best / It\\'s best to...' \},\
-        ];\
-\
-        // --- DOM 
-\f1 \'a4\'b8\'af\'c0
-\f0  ---\
-        const quizArea = document.getElementById('quizArea');\
-        const questionArea = document.getElementById('questionArea');\
-        const optionsArea = document.getElementById('optionsArea');\
-        const messageBox = document.getElementById('messageBox');\
-        const controlButton = document.getElementById('controlButton');\
-        const scoreDisplay = document.getElementById('score');\
-        const roundDisplay = document.getElementById('round');\
-        const questionNumberDisplay = document.getElementById('questionNumber');\
-        const roundSummary = document.getElementById('roundSummary');\
-        const summaryList = document.getElementById('summaryList');\
-\
-        // --- 
-\f1 \'b9\'43\'c0\'b8\'aa\'ac\'ba\'41
-\f0  ---\
-        let currentQuestionIndex = 0;\
-        let score = 0;\
-        let round = 0;\
-        let questionsInRound = []; // 
-\f1 \'c0\'78\'a6\'73\'b7\'ed\'ab\'65\'a6\'5e\'a6\'58\'aa\'ba\'b0\'dd\'c3\'44\'a1\'42\'bf\'ef\'b6\'b5\'a1\'42\'b5\'aa\'ae\'d7\'b5\'a5
-\f0 \
-        let isAnswered = false; // 
-\f1 \'bc\'d0\'b0\'4f\'b7\'ed\'ab\'65\'b0\'dd\'c3\'44\'ac\'4f\'a7\'5f\'a4\'77\'a6\'5e\'b5\'aa\'a1\'41\'a8\'be\'a4\'ee\'ad\'ab\'bd\'c6\'c2\'49\'c0\'bb
-\f0 \
-\
-        // --- 
-\f1 \'a8\'e7\'bc\'c6
-\f0  ---\
-\
-        /**\
-         * 
-\f1 \'ac\'7e\'b5\'50\'a8\'e7\'bc\'c6
-\f0  (Fisher-Yates Shuffle Algorithm)\
-         * @param \{Array\} array - 
-\f1 \'ad\'6e\'ac\'7e\'b5\'50\'aa\'ba\'b0\'7d\'a6\'43
-\f0 \
-         * @returns \{Array\} 
-\f1 \'ac\'7e\'b5\'50\'ab\'e1\'aa\'ba\'b0\'7d\'a6\'43
-\f0 \
-         */\
-        function shuffle(array) \{\
-            // 
-\f1 \'b1\'71\'b3\'cc\'ab\'e1\'a4\'40\'ad\'d3\'a4\'b8\'af\'c0\'b6\'7d\'a9\'6c\'a1\'41\'a6\'56\'ab\'65\'b9\'4d\'be\'fa
-\f0 \
-            for (let i = array.length - 1; i > 0; i--) \{\
-                // 
-\f1 \'c0\'48\'be\'f7\'bf\'ef\'be\'dc\'a4\'40\'ad\'d3\'b7\'ed\'ab\'65\'a4\'b8\'af\'c0\'a4\'a7\'ab\'65\'aa\'ba\'af\'c1\'a4\'de
-\f0 \
-                const j = Math.floor(Math.random() * (i + 1));\
-                // 
-\f1 \'a5\'e6\'b4\'ab\'b7\'ed\'ab\'65\'a4\'b8\'af\'c0\'a9\'4d\'c0\'48\'be\'f7\'bf\'ef\'a4\'a4\'aa\'ba\'a4\'b8\'af\'c0
-\f0 \
-                [array[i], array[j]] = [array[j], array[i]];\
-            \}\
-            return array; // 
-\f1 \'aa\'f0\'a6\'5e\'ac\'7e\'b5\'50\'ab\'e1\'aa\'ba\'b0\'7d\'a6\'43
-\f0 \
-        \}\
-\
-        /**\
-         * 
-\f1 \'b1\'71\'b0\'7d\'a6\'43\'a4\'a4\'c0\'48\'be\'f7\'bf\'ef\'a8\'fa\'ab\'fc\'a9\'77\'bc\'c6\'b6\'71\'aa\'ba\'a4\'a3\'a6\'50\'b6\'b5\'a5\'d8
-\f0 \
-         * @param \{Array\} array - 
-\f1 \'a8\'d3\'b7\'bd\'b0\'7d\'a6\'43
-\f0 \
-         * @param \{number\} count - 
-\f1 \'ad\'6e\'bf\'ef\'a8\'fa\'aa\'ba\'bc\'c6\'b6\'71
-\f0 \
-         * @param \{Object|null\} excludeItem - (
-\f1 \'a5\'69\'bf\'ef
-\f0 ) 
-\f1 \'ad\'6e\'b1\'c6\'b0\'a3\'aa\'ba\'b6\'b5\'a5\'d8
-\f0 \
-         * @returns \{Array\} 
-\f1 \'bf\'ef\'a8\'fa\'aa\'ba\'b6\'b5\'a5\'d8\'b0\'7d\'a6\'43
-\f0 \
-         */\
-        function getRandomItems(array, count, excludeItem = null) \{\
-            // 
-\f1 \'a6\'70\'aa\'47\'bb\'dd\'ad\'6e\'b1\'c6\'b0\'a3\'af\'53\'a9\'77\'b6\'b5\'a5\'d8\'a1\'41\'ab\'68\'b9\'4c\'c2\'6f\'b1\'bc\'b8\'d3\'b6\'b5\'a5\'d8
-\f0 \
-            const filteredArray = excludeItem ? array.filter(item => item.id !== excludeItem.id) : [...array];\
-            // 
-\f1 \'ac\'7e\'b5\'50\'b9\'4c\'c2\'6f\'ab\'e1\'aa\'ba\'b0\'7d\'a6\'43
-\f0 \
-            const shuffled = shuffle(filteredArray);\
-            // 
-\f1 \'aa\'f0\'a6\'5e\'ac\'7e\'b5\'50\'ab\'e1\'b0\'7d\'a6\'43\'aa\'ba\'ab\'65
-\f0  count 
-\f1 \'ad\'d3\'b6\'b5\'a5\'d8
-\f0 \
-            return shuffled.slice(0, count);\
-        \}\
-\
-        /**\
-         * 
-\f1 \'b6\'7d\'a9\'6c\'a4\'40\'ad\'d3\'b7\'73\'aa\'ba\'b9\'43\'c0\'b8\'a6\'5e\'a6\'58
-\f0 \
-         */\
-        function startNewRound() \{\
-            round++; // 
-\f1 \'a6\'5e\'a6\'58\'bc\'c6\'a5\'5b\'a4\'40
-\f0 \
-            score = 0; // 
-\f1 \'ad\'ab\'b8\'6d\'a4\'c0\'bc\'c6
-\f0 \
-            currentQuestionIndex = 0; // 
-\f1 \'ad\'ab\'b8\'6d\'b0\'dd\'c3\'44\'af\'c1\'a4\'de
-\f0 \
-            questionsInRound = []; // 
-\f1 \'b2\'4d\'aa\'c5\'a4\'57\'a4\'40\'a6\'5e\'a6\'58\'aa\'ba\'b0\'dd\'c3\'44
-\f0 \
-            isAnswered = false; // 
-\f1 \'ad\'ab\'b8\'6d\'a6\'5e\'b5\'aa\'aa\'ac\'ba\'41
-\f0 \
-\
-            // 
-\f1 \'a7\'f3\'b7\'73\'a4\'b6\'ad\'b1\'c5\'e3\'a5\'dc
-\f0 \
-            updateScoreDisplay();\
-            updateRoundDisplay();\
-            updateQuestionNumberDisplay(); // 
-\f1 \'bd\'54\'ab\'4f\'a4\'40\'b6\'7d\'a9\'6c\'c3\'44\'b8\'b9\'ac\'4f
-\f0  1/10\
-\
-            // 
-\f1 \'c1\'f4\'c2\'c3\'a6\'5e\'a6\'58\'c1\'60\'b5\'b2\'a1\'41\'c5\'e3\'a5\'dc\'b0\'dd\'c3\'44\'b0\'cf\'b0\'ec
-\f0 \
-            roundSummary.classList.add('hidden');\
-            quizArea.classList.remove('hidden');\
-            // 
-\f1 \'b3\'5d\'a9\'77\'b4\'a3\'a5\'dc\'b0\'54\'ae\'a7
-\f0 \
-            showMessage('
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'a5\'bf\'bd\'54\'aa\'ba\'b5\'aa\'ae\'d7\'a1\'49
-\f0 ', 'info');\
-\
-            // 
-\f1 \'b7\'c7\'b3\'c6\'b7\'ed\'ab\'65\'a6\'5e\'a6\'58\'aa\'ba\'b0\'dd\'c3\'44
-\f0 \
-            prepareQuestions();\
-\
-            // 
-\f1 \'c5\'e3\'a5\'dc\'b2\'c4\'a4\'40\'c3\'44
-\f0 \
-            displayQuestion();\
-\
-            // 
-\f1 \'b3\'5d\'a9\'77\'b1\'b1\'a8\'ee\'ab\'f6\'b6\'73\'aa\'ac\'ba\'41\'ac\'b0\'a1\'75\'a4\'55\'a4\'40\'c3\'44\'a1\'76\'a1\'41\'a8\'c3\'b8\'54\'a5\'ce
-\f0 \
-            controlButton.textContent = '
-\f1 \'a4\'55\'a4\'40\'c3\'44
-\f0 ';\
-            controlButton.disabled = true;\
-        \}\
-\
-        /**\
-         * 
-\f1 \'b7\'c7\'b3\'c6\'b7\'ed\'ab\'65\'a6\'5e\'a6\'58\'aa\'ba\'a9\'d2\'a6\'b3\'b0\'dd\'c3\'44
-\f0 \
-         */\
-        function prepareQuestions() \{\
-            // 
-\f1 \'b1\'71\'a9\'d2\'a6\'b3\'b8\'ea\'ae\'c6\'a4\'a4\'c0\'48\'be\'f7\'bf\'ef\'a8\'fa\'ab\'fc\'a9\'77\'bc\'c6\'b6\'71\'aa\'ba\'b5\'fc\'b7\'4a\'b9\'ef
-\f0 \
-            const selectedPairs = getRandomItems(allCardData, QUESTIONS_PER_ROUND);\
-\
-            // 
-\f1 \'ac\'b0\'a8\'43\'ad\'d3\'bf\'ef\'a4\'a4\'aa\'ba\'b5\'fc\'b7\'4a\'b9\'ef\'a5\'cd\'a6\'a8\'b0\'dd\'c3\'44\'aa\'ab\'a5\'f3
-\f0 \
-            questionsInRound = selectedPairs.map(pair => \{\
-                // 
-\f1 \'c0\'48\'be\'f7\'a8\'4d\'a9\'77\'b0\'dd\'c3\'44\'c3\'fe\'ab\'ac\'a1\'47\'a5\'78\'bb\'79\'a8\'ec\'ad\'5e\'a4\'e5
-\f0  
-\f1 \'a9\'ce
-\f0  
-\f1 \'ad\'5e\'a4\'e5\'a8\'ec\'a5\'78\'bb\'79
-\f0 \
-                const questionType = Math.random() < 0.5 ? 'taiwanese_to_english' : 'english_to_taiwanese';\
-                let questionText = ''; // 
-\f1 \'b0\'dd\'c3\'44\'a4\'e5\'a6\'72
-\f0 \
-                let correctAnswer = ''; // 
-\f1 \'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'a4\'e5\'a6\'72
-\f0 \
-                let options = []; // 
-\f1 \'bf\'ef\'b6\'b5\'b0\'7d\'a6\'43
-\f0 \
-                let incorrectAnswers = []; // 
-\f1 \'bf\'f9\'bb\'7e\'b5\'aa\'ae\'d7\'bf\'ef\'b6\'b5
-\f0 \
-\
-                if (questionType === 'taiwanese_to_english') \{\
-                    // 
-\f1 \'b0\'dd\'c3\'44\'c3\'fe\'ab\'ac\'a1\'47\'ac\'dd\'a5\'78\'bb\'79\'a1\'41\'bf\'ef\'ad\'5e\'a4\'e5
-\f0 \
-                    questionText = `$\{pair.taiwanese\} <span class="chinese">($\{pair.chinese\})</span>`; // 
-\f1 \'c3\'44\'a5\'d8\'a5\'5d\'a7\'74\'a5\'78\'bb\'79\'a9\'4d\'a4\'a4\'a4\'e5
-\f0 \
-                    correctAnswer = pair.english; // 
-\f1 \'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'ac\'4f\'ad\'5e\'a4\'e5
-\f0 \
-                    // 
-\f1 \'c0\'48\'be\'f7\'bf\'ef\'a8\'fa
-\f0 3
-\f1 \'ad\'d3\'a4\'a3\'a6\'50\'aa\'ba\'ad\'5e\'a4\'e5\'c2\'bd\'c4\'b6\'a7\'40\'ac\'b0\'bf\'f9\'bb\'7e\'bf\'ef\'b6\'b5
-\f0 \
-                    incorrectAnswers = getRandomItems(allCardData, 3, pair).map(item => item.english);\
-                \} else \{ // english_to_taiwanese\
-                    // 
-\f1 \'b0\'dd\'c3\'44\'c3\'fe\'ab\'ac\'a1\'47\'ac\'dd\'ad\'5e\'a4\'e5\'a1\'41\'bf\'ef\'a5\'78\'bb\'79
-\f0 \
-                    questionText = pair.english; // 
-\f1 \'c3\'44\'a5\'d8\'ac\'4f\'ad\'5e\'a4\'e5
-\f0 \
-                    correctAnswer = `$\{pair.taiwanese\} ($\{pair.chinese\})`; // 
-\f1 \'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'ac\'4f\'a5\'78\'bb\'79\'a9\'4d\'a4\'a4\'a4\'e5
-\f0 \
-                    // 
-\f1 \'c0\'48\'be\'f7\'bf\'ef\'a8\'fa
-\f0 3
-\f1 \'ad\'d3\'a4\'a3\'a6\'50\'aa\'ba\'a5\'78\'bb\'79
-\f0 (
-\f1 \'a4\'a4\'a4\'e5
-\f0 )
-\f1 \'a7\'40\'ac\'b0\'bf\'f9\'bb\'7e\'bf\'ef\'b6\'b5
-\f0 \
-                    incorrectAnswers = getRandomItems(allCardData, 3, pair).map(item => `$\{item.taiwanese\} ($\{item.chinese\})`);\
-                \}\
-\
-                // 
-\f1 \'b1\'4e\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'a9\'4d\'bf\'f9\'bb\'7e\'bf\'ef\'b6\'b5\'a6\'58\'a8\'d6\'a1\'41\'a8\'c3\'ac\'7e\'b5\'50
-\f0 \
-                options = shuffle([correctAnswer, ...incorrectAnswers]);\
-\
-                // 
-\f1 \'aa\'f0\'a6\'5e\'a5\'5d\'a7\'74\'b0\'dd\'c3\'44\'a9\'d2\'a6\'b3\'b8\'ea\'b0\'54\'aa\'ba\'aa\'ab\'a5\'f3
-\f0 \
-                return \{\
-                    ...pair, // 
-\f1 \'a5\'5d\'a7\'74\'ad\'ec\'a9\'6c
-\f0  id, taiwanese, chinese, english\
-                    questionText,\
-                    correctAnswer,\
-                    options,\
-                    questionType,\
-                    userAnswer: null, // 
-\f1 \'a5\'ce\'a4\'e1\'bf\'ef\'be\'dc\'aa\'ba\'b5\'aa\'ae\'d7\'a1\'41\'aa\'ec\'a9\'6c\'ac\'b0
-\f0  null\
-                    isCorrect: null // 
-\f1 \'a5\'ce\'a4\'e1\'ac\'4f\'a7\'5f\'b5\'aa\'b9\'ef\'a1\'41\'aa\'ec\'a9\'6c\'ac\'b0
-\f0  null\
-                \};\
-            \});\
-        \}\
-\
-        /**\
-         * 
-\f1 \'a6\'62\'a4\'b6\'ad\'b1\'a4\'57\'c5\'e3\'a5\'dc\'a5\'d8\'ab\'65\'aa\'ba\'b0\'dd\'c3\'44\'a9\'4d\'bf\'ef\'b6\'b5
-\f0 \
-         */\
-        function displayQuestion() \{\
-            isAnswered = false; // 
-\f1 \'ad\'ab\'b8\'6d\'a6\'5e\'b5\'aa\'aa\'ac\'ba\'41\'a1\'41\'a4\'b9\'b3\'5c\'a6\'5e\'b5\'aa\'b7\'73\'b0\'dd\'c3\'44
-\f0 \
-            const currentQuestion = questionsInRound[currentQuestionIndex]; // 
-\f1 \'c0\'f2\'a8\'fa\'b7\'ed\'ab\'65\'b0\'dd\'c3\'44\'aa\'ab\'a5\'f3
-\f0 \
-\
-            // 
-\f1 \'a6\'62\'b0\'dd\'c3\'44\'b0\'cf\'b0\'ec\'c5\'e3\'a5\'dc\'b0\'dd\'c3\'44\'a4\'e5\'a6\'72
-\f0  (
-\f1 \'a8\'cf\'a5\'ce
-\f0  innerHTML 
-\f1 \'a5\'48\'ab\'4b\'b8\'d1\'aa\'52
-\f0  span 
-\f1 \'bc\'d0\'c5\'d2
-\f0 )\
-            questionArea.innerHTML = currentQuestion.questionText;\
-            optionsArea.innerHTML = ''; // 
-\f1 \'b2\'4d\'aa\'c5\'a4\'57\'a4\'40\'c3\'44\'aa\'ba\'bf\'ef\'b6\'b5
-\f0 \
-\
-            // 
-\f1 \'ac\'b0\'a8\'43\'ad\'d3\'bf\'ef\'b6\'b5\'b3\'d0\'ab\'d8\'ab\'f6\'b6\'73
-\f0 \
-            currentQuestion.options.forEach(option => \{\
-                const button = document.createElement('button');\
-                button.classList.add('option-button');\
-                button.textContent = option; // 
-\f1 \'b3\'5d\'a9\'77\'ab\'f6\'b6\'73\'a4\'e5\'a6\'72
-\f0 \
-                // 
-\f1 \'ac\'b0\'ab\'f6\'b6\'73\'b2\'4b\'a5\'5b\'c2\'49\'c0\'bb\'a8\'c6\'a5\'f3\'ba\'ca\'c5\'a5\'be\'b9
-\f0 \
-                button.addEventListener('click', handleOptionClick);\
-                optionsArea.appendChild(button); // 
-\f1 \'b1\'4e\'ab\'f6\'b6\'73\'b2\'4b\'a5\'5b\'a8\'ec\'bf\'ef\'b6\'b5\'b0\'cf\'b0\'ec
-\f0 \
-            \});\
-\
-            updateQuestionNumberDisplay(); // 
-\f1 \'a7\'f3\'b7\'73\'c3\'44\'b8\'b9\'c5\'e3\'a5\'dc
-\f0 \
-            controlButton.disabled = true; // 
-\f1 \'b8\'54\'a5\'ce\'a1\'75\'a4\'55\'a4\'40\'c3\'44\'a1\'76\'ab\'f6\'b6\'73\'a1\'41\'b5\'a5\'ab\'dd\'a5\'ce\'a4\'e1\'a6\'5e\'b5\'aa
-\f0 \
-            // 
-\f1 \'b2\'4d\'b0\'a3\'a4\'57\'a4\'40\'c3\'44\'a5\'69\'af\'e0\'af\'64\'a4\'55\'aa\'ba\'b0\'54\'ae\'a7\'bc\'cb\'a6\'a1
-\f0 \
-             messageBox.textContent = '
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'a5\'bf\'bd\'54\'aa\'ba\'b5\'aa\'ae\'d7\'a1\'49
-\f0 ';\
-             messageBox.className = 'message-box message-info w-full max-w-md';\
-        \}\
-\
-        /**\
-         * 
-\f1 \'b3\'42\'b2\'7a\'a5\'ce\'a4\'e1\'c2\'49\'c0\'bb\'bf\'ef\'b6\'b5\'ab\'f6\'b6\'73\'aa\'ba\'a8\'c6\'a5\'f3
-\f0 \
-         * @param \{Event\} event - 
-\f1 \'c2\'49\'c0\'bb\'a8\'c6\'a5\'f3\'aa\'ab\'a5\'f3
-\f0 \
-         */\
-        function handleOptionClick(event) \{\
-            // 
-\f1 \'a6\'70\'aa\'47\'a5\'bb\'c3\'44\'a4\'77\'b8\'67\'a6\'5e\'b5\'aa\'b9\'4c\'a1\'41\'ab\'68\'aa\'bd\'b1\'b5\'aa\'f0\'a6\'5e\'a1\'41\'a4\'a3\'b0\'f5\'a6\'e6\'a5\'f4\'a6\'f3\'be\'de\'a7\'40
-\f0 \
-            if (isAnswered) return;\
-            isAnswered = true; // 
-\f1 \'bc\'d0\'b0\'4f\'a5\'bb\'c3\'44\'a4\'77\'a6\'5e\'b5\'aa
-\f0 \
-\
-            const selectedButton = event.target; // 
-\f1 \'c0\'f2\'a8\'fa\'b3\'51\'c2\'49\'c0\'bb\'aa\'ba\'ab\'f6\'b6\'73
-\f0 \
-            const selectedAnswer = selectedButton.textContent; // 
-\f1 \'c0\'f2\'a8\'fa\'ab\'f6\'b6\'73\'a4\'57\'aa\'ba\'a4\'e5\'a6\'72\'a7\'40\'ac\'b0\'a5\'ce\'a4\'e1\'b5\'aa\'ae\'d7
-\f0 \
-            const currentQuestion = questionsInRound[currentQuestionIndex]; // 
-\f1 \'c0\'f2\'a8\'fa\'b7\'ed\'ab\'65\'b0\'dd\'c3\'44\'aa\'ab\'a5\'f3
-\f0 \
-            currentQuestion.userAnswer = selectedAnswer; // 
-\f1 \'b0\'4f\'bf\'fd\'a5\'ce\'a4\'e1\'bf\'ef\'be\'dc\'aa\'ba\'b5\'aa\'ae\'d7
-\f0 \
-\
-            // 
-\f1 \'b8\'54\'a5\'ce\'a9\'d2\'a6\'b3\'bf\'ef\'b6\'b5\'ab\'f6\'b6\'73\'a1\'41\'a8\'be\'a4\'ee\'a5\'ce\'a4\'e1\'a6\'41\'a6\'b8\'c2\'49\'c0\'bb
-\f0 \
-            const optionButtons = optionsArea.querySelectorAll('.option-button');\
-            optionButtons.forEach(btn => btn.disabled = true);\
-\
-            // 
-\f1 \'c0\'cb\'ac\'64\'b5\'aa\'ae\'d7\'ac\'4f\'a7\'5f\'a5\'bf\'bd\'54
-\f0 \
-            if (selectedAnswer === currentQuestion.correctAnswer) \{\
-                // 
-\f1 \'b5\'aa\'ae\'d7\'a5\'bf\'bd\'54
-\f0 \
-                score += 10; // 
-\f1 \'a5\'5b\'a4\'c0
-\f0 \
-                currentQuestion.isCorrect = true; // 
-\f1 \'bc\'d0\'b0\'4f\'ac\'b0\'b5\'aa\'b9\'ef
-\f0 \
-                selectedButton.classList.add('flash-correct'); // 
-\f1 \'b2\'4b\'a5\'5b\'b0\'7b\'c3\'7b\'ae\'c4\'aa\'47
-\f0 \
-                selectedButton.classList.add('correct-answer-highlight'); // 
-\f1 \'b0\'aa\'ab\'47\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0 \
-                showMessage('
-\f1 \'b5\'aa\'b9\'ef\'a4\'46\'a1\'49
-\f0  +10
-\f1 \'a4\'c0
-\f0 ', 'success'); // 
-\f1 \'c5\'e3\'a5\'dc\'a6\'a8\'a5\'5c\'b0\'54\'ae\'a7
-\f0 \
-            \} else \{\
-                // 
-\f1 \'b5\'aa\'ae\'d7\'bf\'f9\'bb\'7e
-\f0 \
-                currentQuestion.isCorrect = false; // 
-\f1 \'bc\'d0\'b0\'4f\'ac\'b0\'b5\'aa\'bf\'f9
-\f0 \
-                selectedButton.classList.add('incorrect-answer-highlight'); // 
-\f1 \'b0\'aa\'ab\'47\'a5\'ce\'a4\'e1\'bf\'ef\'bf\'f9\'aa\'ba\'b5\'aa\'ae\'d7
-\f0 \
-                // 
-\f1 \'a7\'e4\'a8\'ec\'a8\'c3\'b0\'aa\'ab\'47\'c5\'e3\'a5\'dc\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0 \
-                optionButtons.forEach(btn => \{\
-                    if (btn.textContent === currentQuestion.correctAnswer) \{\
-                        btn.classList.add('correct-answer-highlight');\
-                    \}\
-                \});\
-                // 
-\f1 \'c5\'e3\'a5\'dc\'bf\'f9\'bb\'7e\'b0\'54\'ae\'a7\'a1\'41\'a8\'c3\'b4\'a3\'a5\'dc\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0 \
-                showMessage(`
-\f1 \'b5\'aa\'bf\'f9\'a4\'46\'a1\'49\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'ac\'4f\'a1\'47
-\f0 $\{currentQuestion.correctAnswer\}`, 'error');\
-            \}\
-\
-            updateScoreDisplay(); // 
-\f1 \'a7\'f3\'b7\'73\'a4\'c0\'bc\'c6\'c5\'e3\'a5\'dc
-\f0 \
-            controlButton.disabled = false; // 
-\f1 \'b1\'d2\'a5\'ce\'a1\'75\'a4\'55\'a4\'40\'c3\'44\'a1\'76\'ab\'f6\'b6\'73
-\f0 \
-        \}\
-\
-        /**\
-         * 
-\f1 \'b3\'42\'b2\'7a\'a5\'44\'b1\'b1\'a8\'ee\'ab\'f6\'b6\'73\'a1\'5d\'b6\'7d\'a9\'6c
-\f0 /
-\f1 \'a4\'55\'a4\'40\'c3\'44
-\f0 /
-\f1 \'b7\'73\'a6\'5e\'a6\'58\'a1\'5e\'aa\'ba\'c2\'49\'c0\'bb\'a8\'c6\'a5\'f3
-\f0 \
-         */\
-        function handleControlButtonClick() \{\
-            const currentState = controlButton.textContent; // 
-\f1 \'c0\'f2\'a8\'fa\'ab\'f6\'b6\'73\'b7\'ed\'ab\'65\'aa\'ba\'a4\'e5\'a6\'72
-\f0 \
-\
-            // 
-\f1 \'ae\'da\'be\'da\'ab\'f6\'b6\'73\'a4\'e5\'a6\'72\'b0\'f5\'a6\'e6\'a4\'a3\'a6\'50\'be\'de\'a7\'40
-\f0 \
-            if (currentState === '
-\f1 \'b6\'7d\'a9\'6c\'b9\'43\'c0\'b8
-\f0 ') \{\
-                startNewRound(); // 
-\f1 \'b6\'7d\'a9\'6c\'b7\'73\'b9\'43\'c0\'b8\'aa\'ba\'b2\'c4\'a4\'40\'a6\'5e\'a6\'58
-\f0 \
-            \} else if (currentState === '
-\f1 \'a4\'55\'a4\'40\'c3\'44
-\f0 ') \{\
-                currentQuestionIndex++; // 
-\f1 \'b0\'dd\'c3\'44\'af\'c1\'a4\'de\'a5\'5b\'a4\'40
-\f0 \
-                // 
-\f1 \'c0\'cb\'ac\'64\'ac\'4f\'a7\'5f\'c1\'d9\'a6\'b3\'a4\'55\'a4\'40\'c3\'44
-\f0 \
-                if (currentQuestionIndex < QUESTIONS_PER_ROUND) \{\
-                    displayQuestion(); // 
-\f1 \'c5\'e3\'a5\'dc\'a4\'55\'a4\'40\'c3\'44
-\f0 \
-                \} else \{\
-                    // 
-\f1 \'a9\'d2\'a6\'b3\'c3\'44\'a5\'d8\'a6\'5e\'b5\'aa\'a7\'b9\'b2\'a6\'a1\'41\'c5\'e3\'a5\'dc\'a6\'5e\'a6\'58\'c1\'60\'b5\'b2
-\f0 \
-                    displayRoundSummary();\
-                \}\
-            \} else if (currentState === '
-\f1 \'b6\'7d\'a9\'6c\'b7\'73\'a6\'5e\'a6\'58
-\f0 ') \{\
-                startNewRound(); // 
-\f1 \'b6\'7d\'a9\'6c\'a4\'40\'ad\'d3\'b7\'73\'aa\'ba\'a6\'5e\'a6\'58
-\f0 \
-            \}\
-        \}\
-\
-        /**\
-         * 
-\f1 \'c5\'e3\'a5\'dc\'a6\'5e\'a6\'58\'b5\'b2\'a7\'f4\'ab\'e1\'aa\'ba\'c1\'60\'b5\'b2\'b8\'ea\'b0\'54
-\f0 \
-         */\
-        function displayRoundSummary() \{\
-            quizArea.classList.add('hidden'); // 
-\f1 \'c1\'f4\'c2\'c3\'b0\'dd\'c3\'44\'a9\'4d\'bf\'ef\'b6\'b5\'b0\'cf\'b0\'ec
-\f0 \
-            roundSummary.classList.remove('hidden'); // 
-\f1 \'c5\'e3\'a5\'dc\'c1\'60\'b5\'b2\'b0\'cf\'b0\'ec
-\f0 \
-            summaryList.innerHTML = ''; // 
-\f1 \'b2\'4d\'aa\'c5\'a4\'57\'a4\'40\'a6\'5e\'a6\'58\'aa\'ba\'c1\'60\'b5\'b2\'a6\'43\'aa\'ed
-\f0 \
-\
-            // 
-\f1 \'b9\'4d\'be\'fa\'a5\'bb\'a6\'5e\'a6\'58\'aa\'ba\'a9\'d2\'a6\'b3\'b0\'dd\'c3\'44\'a1\'41\'a5\'cd\'a6\'a8\'c1\'60\'b5\'b2\'a6\'43\'aa\'ed\'b6\'b5
-\f0 \
-            questionsInRound.forEach((q, index) => \{\
-                const li = document.createElement('li'); // 
-\f1 \'b3\'d0\'ab\'d8\'a6\'43\'aa\'ed\'b6\'b5
-\f0 \
-\
-                // 
-\f1 \'c5\'e3\'a5\'dc\'b0\'dd\'c3\'44
-\f0 \
-                const questionDiv = document.createElement('div');\
-                questionDiv.classList.add('summary-question');\
-                // 
-\f1 \'b3\'d0\'ab\'d8\'c1\'7b\'ae\'c9
-\f0  div 
-\f1 \'a5\'48\'a5\'68\'b0\'a3\'b0\'dd\'c3\'44\'a4\'e5\'a6\'72\'a4\'a4\'aa\'ba
-\f0  HTML 
-\f1 \'bc\'d0\'c5\'d2
-\f0 \
-                const tempDiv = document.createElement('div');\
-                tempDiv.innerHTML = q.questionText;\
-                questionDiv.textContent = `$\{index + 1\}. $\{tempDiv.textContent || tempDiv.innerText || ""\}`; // 
-\f1 \'c5\'e3\'a5\'dc\'c3\'44\'b8\'b9\'a9\'4d\'af\'c2\'a4\'e5\'a5\'bb\'b0\'dd\'c3\'44
-\f0 \
-\
-                // 
-\f1 \'c5\'e3\'a5\'dc\'a5\'ce\'a4\'e1\'b5\'aa\'ae\'d7
-\f0 \
-                const userAnswerDiv = document.createElement('div');\
-                userAnswerDiv.classList.add('summary-user-answer');\
-                userAnswerDiv.textContent = `
-\f1 \'a7\'41\'aa\'ba\'b5\'aa\'ae\'d7\'a1\'47
-\f0 $\{q.userAnswer || '
-\f1 \'a5\'bc\'a6\'5e\'b5\'aa
-\f0 '\}`; // 
-\f1 \'c5\'e3\'a5\'dc\'a5\'ce\'a4\'e1\'b5\'aa\'ae\'d7\'a1\'41\'a6\'70\'aa\'47\'a5\'bc\'a6\'5e\'b5\'aa\'ab\'68\'b4\'a3\'a5\'dc
-\f0 \
-                // 
-\f1 \'ae\'da\'be\'da\'ac\'4f\'a7\'5f\'b5\'aa\'b9\'ef\'b2\'4b\'a5\'5b\'a4\'a3\'a6\'50\'bc\'cb\'a6\'a1
-\f0 \
-                if (q.isCorrect) \{\
-                    userAnswerDiv.classList.add('correct');\
-                \} else \{\
-                    userAnswerDiv.classList.add('incorrect');\
-                \}\
-\
-                // 
-\f1 \'c5\'e3\'a5\'dc\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0 \
-                const correctAnswerDiv = document.createElement('div');\
-                correctAnswerDiv.classList.add('summary-answer');\
-                correctAnswerDiv.textContent = `
-\f1 \'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7\'a1\'47
-\f0 $\{q.correctAnswer\}`;\
-\
-                // 
-\f1 \'b1\'4e\'b0\'dd\'c3\'44\'a9\'4d\'a5\'ce\'a4\'e1\'b5\'aa\'ae\'d7\'b2\'4b\'a5\'5b\'a8\'ec\'a6\'43\'aa\'ed\'b6\'b5
-\f0 \
-                li.appendChild(questionDiv);\
-                li.appendChild(userAnswerDiv);\
-                // 
-\f1 \'a5\'75\'a6\'b3\'a6\'62\'a5\'ce\'a4\'e1\'b5\'aa\'bf\'f9\'ae\'c9\'a1\'41\'a4\'7e\'c3\'42\'a5\'7e\'c5\'e3\'a5\'dc\'a5\'bf\'bd\'54\'b5\'aa\'ae\'d7
-\f0 \
-                if (!q.isCorrect) \{\
-                     li.appendChild(correctAnswerDiv);\
-                \}\
-\
-                summaryList.appendChild(li); // 
-\f1 \'b1\'4e\'a6\'43\'aa\'ed\'b6\'b5\'b2\'4b\'a5\'5b\'a8\'ec\'c1\'60\'b5\'b2\'a6\'43\'aa\'ed
-\f0 \
-            \});\
-\
-            // 
-\f1 \'c5\'e3\'a5\'dc\'a6\'5e\'a6\'58\'b5\'b2\'a7\'f4\'b0\'54\'ae\'a7\'a9\'4d\'c1\'60\'a4\'c0
-\f0 \
-            showMessage(`
-\f1 \'a6\'5e\'a6\'58
-\f0  $\{round\} 
-\f1 \'b5\'b2\'a7\'f4\'a1\'49\'b1\'7a\'aa\'ba\'c1\'60\'b1\'6f\'a4\'c0\'ac\'4f\'a1\'47
-\f0 $\{score\}`, 'success');\
-            // 
-\f1 \'b1\'4e\'b1\'b1\'a8\'ee\'ab\'f6\'b6\'73\'a4\'e5\'a6\'72\'a7\'ef\'ac\'b0\'a1\'75\'b6\'7d\'a9\'6c\'b7\'73\'a6\'5e\'a6\'58\'a1\'76\'a1\'41\'a8\'c3\'b1\'d2\'a5\'ce
-\f0 \
-            controlButton.textContent = '
-\f1 \'b6\'7d\'a9\'6c\'b7\'73\'a6\'5e\'a6\'58
-\f0 ';\
-            controlButton.disabled = false;\
-        \}\
-\
-\
-        /**\
-         * 
-\f1 \'a7\'f3\'b7\'73\'a4\'b6\'ad\'b1\'a4\'57\'aa\'ba\'a4\'c0\'bc\'c6\'c5\'e3\'a5\'dc
-\f0 \
-         */\
-        function updateScoreDisplay() \{\
-            scoreDisplay.textContent = `
-\f1 \'a4\'c0\'bc\'c6\'a1\'47
-\f0 $\{score\}`;\
-        \}\
-\
-        /**\
-         * 
-\f1 \'a7\'f3\'b7\'73\'a4\'b6\'ad\'b1\'a4\'57\'aa\'ba\'a6\'5e\'a6\'58\'bc\'c6\'c5\'e3\'a5\'dc
-\f0 \
-         */\
-        function updateRoundDisplay() \{\
-            roundDisplay.textContent = `
-\f1 \'a6\'5e\'a6\'58\'a1\'47
-\f0 $\{round\}`;\
-        \}\
-\
-        /**\
-         * 
-\f1 \'a7\'f3\'b7\'73\'a4\'b6\'ad\'b1\'a4\'57\'aa\'ba\'c3\'44\'b8\'b9\'c5\'e3\'a5\'dc
-\f0  (
-\f1 \'a8\'d2\'a6\'70
-\f0  "
-\f1 \'c3\'44\'a5\'d8\'a1\'47
-\f0 1 / 10")\
-         */\
-        function updateQuestionNumberDisplay() \{\
-            // 
-\f1 \'a6\'70\'aa\'47\'b9\'43\'c0\'b8\'a5\'bc\'b6\'7d\'a9\'6c
-\f0  (round === 0)
-\f1 \'a1\'41\'c5\'e3\'a5\'dc
-\f0  0/10\
-            // 
-\f1 \'a7\'5f\'ab\'68\'a1\'41\'c5\'e3\'a5\'dc\'b7\'ed\'ab\'65\'c3\'44\'b8\'b9
-\f0  (
-\f1 \'af\'c1\'a4\'de
-\f0 +1)
-\f1 \'a1\'41\'a6\'fd\'a4\'a3\'b6\'57\'b9\'4c\'c1\'60\'c3\'44\'bc\'c6
-\f0 \
-            const displayIndex = round === 0 ? 0 : Math.min(currentQuestionIndex + 1, QUESTIONS_PER_ROUND);\
-            questionNumberDisplay.textContent = `
-\f1 \'c3\'44\'a5\'d8\'a1\'47
-\f0 $\{displayIndex\} / $\{QUESTIONS_PER_ROUND\}`;\
-        \}\
-\
-        /**\
-        * 
-\f1 \'a6\'62\'b0\'54\'ae\'a7\'ae\'d8\'c5\'e3\'a5\'dc\'b0\'54\'ae\'a7
-\f0 \
-        * @param \{string\} text - 
-\f1 \'ad\'6e\'c5\'e3\'a5\'dc\'aa\'ba\'a4\'e5\'a6\'72
-\f0 \
-        * @param \{'info'|'success'|'error'\} type - 
-\f1 \'b0\'54\'ae\'a7\'c3\'fe\'ab\'ac\'a1\'41\'bc\'76\'c5\'54\'bc\'cb\'a6\'a1
-\f0 \
-        */\
-        function showMessage(text, type = 'info') \{\
-            messageBox.textContent = text;\
-            // 
-\f1 \'ae\'da\'be\'da\'b0\'54\'ae\'a7\'c3\'fe\'ab\'ac\'b3\'5d\'a9\'77\'a4\'a3\'a6\'50\'aa\'ba
-\f0  CSS class\
-            messageBox.className = `message-box w-full max-w-md message-$\{type\}`;\
-        \}\
-\
-\
-        // --- 
-\f1 \'a8\'c6\'a5\'f3\'ba\'ca\'c5\'a5
-\f0  ---\
-        // 
-\f1 \'ac\'b0\'a5\'44\'b1\'b1\'a8\'ee\'ab\'f6\'b6\'73\'b2\'4b\'a5\'5b\'c2\'49\'c0\'bb\'a8\'c6\'a5\'f3\'ba\'ca\'c5\'a5\'be\'b9
-\f0 \
-        controlButton.addEventListener('click', handleControlButtonClick);\
-\
-        // --- 
-\f1 \'b9\'43\'c0\'b8\'aa\'ec\'a9\'6c\'a4\'c6
-\f0  ---\
-        // 
-\f1 \'b7\'ed
-\f0  DOM 
-\f1 \'a7\'b9\'a5\'fe\'b8\'fc\'a4\'4a\'ab\'e1\'b0\'f5\'a6\'e6\'aa\'ec\'a9\'6c\'a4\'c6\'be\'de\'a7\'40
-\f0 \
-        document.addEventListener('DOMContentLoaded', () => \{\
-             // 
-\f1 \'aa\'ec\'a9\'6c\'a4\'c6\'a4\'b6\'ad\'b1\'c5\'e3\'a5\'dc
-\f0 \
-             updateScoreDisplay();\
-             updateRoundDisplay();\
-             updateQuestionNumberDisplay(); // 
-\f1 \'aa\'ec\'a9\'6c\'a4\'c6\'c3\'44\'b8\'b9\'c5\'e3\'a5\'dc\'ac\'b0
-\f0  0/10\
-        \});\
-\
-    </script>\
-\
-</body>\
-</html>\
-}
+    <h1 class="text-3xl font-bold text-sky-800 mb-2 text-center">看影片玩台語</h1>
+
+    <div class="creator-info w-full max-w-md">
+        <p>遊戲創建人：Gloria吳秀蘭老師 (Google認證講師，台語認證高級證書，英語間台語教師)</p>
+        <p class="youtube-link mt-1">
+            參考影片：<a href="https://youtu.be/PrF6aT8mi_c?si=SUJtXRbfiitB2kU1，卡牌分兩類：台語漢字，英文對照，每次遊戲共10題，答對會有醒目效果，最後會將所有答案的台語漢字和英文翻譯，包含繁體中文都呈現，方便學生檢視" target="_blank" rel="noopener noreferrer">點此觀看</a>
+        </p>
+    </div>
+
+    <div class="game-info w-full max-w-md">
+        <span id="score">分數：0</span>
+        <span id="round">回合：0</span>
+        <span id="questionNumber">題目：0 / 10</span>
+    </div>
+
+    <div id="messageBox" class="message-box message-info w-full max-w-md">
+        點擊下方按鈕開始遊戲！
+    </div>
+
+    <div id="quizArea" class="w-full flex flex-col items-center hidden">
+        <div id="questionArea">
+            </div>
+        <div id="optionsArea">
+            </div>
+    </div>
+
+    <div id="roundSummary" class="hidden">
+        <h3>回合總結</h3>
+        <ul id="summaryList">
+            </ul>
+    </div>
+
+    <button id="controlButton" class="button mt-4">開始遊戲</button>
+
+    <script>
+        // --- 常數定義 ---
+        const QUESTIONS_PER_ROUND = 10;
+
+        // --- 遊戲資料 ---
+        const allCardData = [
+            // 保持與之前版本一致的詞彙列表
+            { id: 1, taiwanese: '水管', chinese: '水管', english: 'Water pipe' },
+            { id: 2, taiwanese: '摩托車', chinese: '摩托車/機車', english: 'Scooter/Motorcycle' },
+            { id: 3, taiwanese: '車禍', chinese: '車禍', english: 'Traffic accident' },
+            { id: 4, taiwanese: '載', chinese: '載送', english: 'To carry' },
+            { id: 5, taiwanese: '跋倒', chinese: '跌倒', english: 'To fall down' },
+            { id: 6, taiwanese: '警方', chinese: '警方', english: 'Police' },
+            { id: 7, taiwanese: '危險', chinese: '危險', english: 'Dangerous' },
+            { id: 8, taiwanese: '罰', chinese: '處罰/罰款', english: 'To fine / Penalty' },
+            { id: 9, taiwanese: '查埔人', chinese: '男人', english: 'Man' },
+            { id: 10, taiwanese: '橫', chinese: '橫的', english: 'Horizontal' },
+            { id: 11, taiwanese: '民眾', chinese: '民眾', english: 'Citizens / People' },
+            { id: 12, taiwanese: '塗跤', chinese: '地上/地面', english: 'Ground' },
+            { id: 13, taiwanese: '佳哉', chinese: '幸好/幸虧', english: 'Fortunately' },
+            { id: 14, taiwanese: '物件', chinese: '物品/東西', english: 'Items / Things' },
+            { id: 15, taiwanese: '規定', chinese: '規定', english: 'Regulations' },
+            { id: 16, taiwanese: '畫面', chinese: '畫面', english: 'Screen / Footage' },
+            { id: 17, taiwanese: '邊仔', chinese: '旁邊', english: 'Beside / Side' },
+            { id: 18, taiwanese: '赶紧', chinese: '趕快/趕緊', english: 'Quickly / Hurriedly' },
+            { id: 19, taiwanese: '塑膠', chinese: '塑膠', english: 'Plastic' },
+            { id: 20, taiwanese: '裁', chinese: '裁剪', english: 'To cut' },
+            { id: 21, taiwanese: '宽度', chinese: '寬度', english: 'Width' },
+            { id: 22, taiwanese: '长度', chinese: '長度', english: 'Length' },
+            { id: 23, taiwanese: '好意人', chinese: '好心人', english: 'Kindhearted people' },
+            { id: 24, taiwanese: '切較短', chinese: '切短一點', english: 'Cut shorter' },
+            { id: 25, taiwanese: '货車', chinese: '貨車', english: 'Truck' },
+            { id: 26, taiwanese: '皮肉傷', chinese: '皮外傷', english: 'Minor abrasions' },
+            { id: 27, taiwanese: '按呢', chinese: '這樣', english: 'Like this / So' },
+            { id: 28, taiwanese: '袂赴', chinese: '來不及', english: 'Cannot make it / Too late' },
+            { id: 29, taiwanese: '佗位', chinese: '哪裡', english: 'Where' },
+            { id: 30, taiwanese: '上好', chinese: '最好', english: 'Best / It\'s best to...' },
+        ];
+
+        // --- DOM 元素 ---
+        const quizArea = document.getElementById('quizArea');
+        const questionArea = document.getElementById('questionArea');
+        const optionsArea = document.getElementById('optionsArea');
+        const messageBox = document.getElementById('messageBox');
+        const controlButton = document.getElementById('controlButton');
+        const scoreDisplay = document.getElementById('score');
+        const roundDisplay = document.getElementById('round');
+        const questionNumberDisplay = document.getElementById('questionNumber');
+        const roundSummary = document.getElementById('roundSummary');
+        const summaryList = document.getElementById('summaryList');
+
+        // --- 遊戲狀態 ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let round = 0;
+        let questionsInRound = []; // 儲存當前回合的問題、選項、答案等
+        let isAnswered = false; // 標記當前問題是否已回答，防止重複點擊
+
+        // --- 函數 ---
+
+        /**
+         * 洗牌函數 (Fisher-Yates Shuffle Algorithm)
+         * @param {Array} array - 要洗牌的陣列
+         * @returns {Array} 洗牌後的陣列
+         */
+        function shuffle(array) {
+            // 從最後一個元素開始，向前遍歷
+            for (let i = array.length - 1; i > 0; i--) {
+                // 隨機選擇一個當前元素之前的索引
+                const j = Math.floor(Math.random() * (i + 1));
+                // 交換當前元素和隨機選中的元素
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array; // 返回洗牌後的陣列
+        }
+
+        /**
+         * 從陣列中隨機選取指定數量的不同項目
+         * @param {Array} array - 來源陣列
+         * @param {number} count - 要選取的數量
+         * @param {Object|null} excludeItem - (可選) 要排除的項目
+         * @returns {Array} 選取的項目陣列
+         */
+        function getRandomItems(array, count, excludeItem = null) {
+            // 如果需要排除特定項目，則過濾掉該項目
+            const filteredArray = excludeItem ? array.filter(item => item.id !== excludeItem.id) : [...array];
+            // 洗牌過濾後的陣列
+            const shuffled = shuffle(filteredArray);
+            // 返回洗牌後陣列的前 count 個項目
+            return shuffled.slice(0, count);
+        }
+
+        /**
+         * 開始一個新的遊戲回合
+         */
+        function startNewRound() {
+            round++; // 回合數加一
+            score = 0; // 重置分數
+            currentQuestionIndex = 0; // 重置問題索引
+            questionsInRound = []; // 清空上一回合的問題
+            isAnswered = false; // 重置回答狀態
+
+            // 更新介面顯示
+            updateScoreDisplay();
+            updateRoundDisplay();
+            updateQuestionNumberDisplay(); // 確保一開始題號是 1/10
+
+            // 隱藏回合總結，顯示問題區域
+            roundSummary.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            // 設定提示訊息
+            showMessage('請選擇正確的答案！', 'info');
+
+            // 準備當前回合的問題
+            prepareQuestions();
+
+            // 顯示第一題
+            displayQuestion();
+
+            // 設定控制按鈕狀態為「下一題」，並禁用
+            controlButton.textContent = '下一題';
+            controlButton.disabled = true;
+        }
+
+        /**
+         * 準備當前回合的所有問題
+         */
+        function prepareQuestions() {
+            // 從所有資料中隨機選取指定數量的詞彙對
+            const selectedPairs = getRandomItems(allCardData, QUESTIONS_PER_ROUND);
+
+            // 為每個選中的詞彙對生成問題物件
+            questionsInRound = selectedPairs.map(pair => {
+                // 隨機決定問題類型：台語到英文 或 英文到台語
+                const questionType = Math.random() < 0.5 ? 'taiwanese_to_english' : 'english_to_taiwanese';
+                let questionText = ''; // 問題文字
+                let correctAnswer = ''; // 正確答案文字
+                let options = []; // 選項陣列
+                let incorrectAnswers = []; // 錯誤答案選項
+
+                if (questionType === 'taiwanese_to_english') {
+                    // 問題類型：看台語，選英文
+                    questionText = `${pair.taiwanese} <span class="chinese">(${pair.chinese})</span>`; // 題目包含台語和中文
+                    correctAnswer = pair.english; // 正確答案是英文
+                    // 隨機選取3個不同的英文翻譯作為錯誤選項
+                    incorrectAnswers = getRandomItems(allCardData, 3, pair).map(item => item.english);
+                } else { // english_to_taiwanese
+                    // 問題類型：看英文，選台語
+                    questionText = pair.english; // 題目是英文
+                    correctAnswer = `${pair.taiwanese} (${pair.chinese})`; // 正確答案是台語和中文
+                    // 隨機選取3個不同的台語(中文)作為錯誤選項
+                    incorrectAnswers = getRandomItems(allCardData, 3, pair).map(item => `${item.taiwanese} (${item.chinese})`);
+                }
+
+                // 將正確答案和錯誤選項合併，並洗牌
+                options = shuffle([correctAnswer, ...incorrectAnswers]);
+
+                // 返回包含問題所有資訊的物件
+                return {
+                    ...pair, // 包含原始 id, taiwanese, chinese, english
+                    questionText,
+                    correctAnswer,
+                    options,
+                    questionType,
+                    userAnswer: null, // 用戶選擇的答案，初始為 null
+                    isCorrect: null // 用戶是否答對，初始為 null
+                };
+            });
+        }
+
+        /**
+         * 在介面上顯示目前的問題和選項
+         */
+        function displayQuestion() {
+            isAnswered = false; // 重置回答狀態，允許回答新問題
+            const currentQuestion = questionsInRound[currentQuestionIndex]; // 獲取當前問題物件
+
+            // 在問題區域顯示問題文字 (使用 innerHTML 以便解析 span 標籤)
+            questionArea.innerHTML = currentQuestion.questionText;
+            optionsArea.innerHTML = ''; // 清空上一題的選項
+
+            // 為每個選項創建按鈕
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.classList.add('option-button');
+                button.textContent = option; // 設定按鈕文字
+                // 為按鈕添加點擊事件監聽器
+                button.addEventListener('click', handleOptionClick);
+                optionsArea.appendChild(button); // 將按鈕添加到選項區域
+            });
+
+            updateQuestionNumberDisplay(); // 更新題號顯示
+            controlButton.disabled = true; // 禁用「下一題」按鈕，等待用戶回答
+            // 清除上一題可能留下的訊息樣式
+             messageBox.textContent = '請選擇正確的答案！';
+             messageBox.className = 'message-box message-info w-full max-w-md';
+        }
+
+        /**
+         * 處理用戶點擊選項按鈕的事件
+         * @param {Event} event - 點擊事件物件
+         */
+        function handleOptionClick(event) {
+            // 如果本題已經回答過，則直接返回，不執行任何操作
+            if (isAnswered) return;
+            isAnswered = true; // 標記本題已回答
+
+            const selectedButton = event.target; // 獲取被點擊的按鈕
+            const selectedAnswer = selectedButton.textContent; // 獲取按鈕上的文字作為用戶答案
+            const currentQuestion = questionsInRound[currentQuestionIndex]; // 獲取當前問題物件
+            currentQuestion.userAnswer = selectedAnswer; // 記錄用戶選擇的答案
+
+            // 禁用所有選項按鈕，防止用戶再次點擊
+            const optionButtons = optionsArea.querySelectorAll('.option-button');
+            optionButtons.forEach(btn => btn.disabled = true);
+
+            // 檢查答案是否正確
+            if (selectedAnswer === currentQuestion.correctAnswer) {
+                // 答案正確
+                score += 10; // 加分
+                currentQuestion.isCorrect = true; // 標記為答對
+                selectedButton.classList.add('flash-correct'); // 添加閃爍效果
+                selectedButton.classList.add('correct-answer-highlight'); // 高亮正確答案
+                showMessage('答對了！ +10分', 'success'); // 顯示成功訊息
+            } else {
+                // 答案錯誤
+                currentQuestion.isCorrect = false; // 標記為答錯
+                selectedButton.classList.add('incorrect-answer-highlight'); // 高亮用戶選錯的答案
+                // 找到並高亮顯示正確答案
+                optionButtons.forEach(btn => {
+                    if (btn.textContent === currentQuestion.correctAnswer) {
+                        btn.classList.add('correct-answer-highlight');
+                    }
+                });
+                // 顯示錯誤訊息，並提示正確答案
+                showMessage(`答錯了！正確答案是：${currentQuestion.correctAnswer}`, 'error');
+            }
+
+            updateScoreDisplay(); // 更新分數顯示
+            controlButton.disabled = false; // 啟用「下一題」按鈕
+        }
+
+        /**
+         * 處理主控制按鈕（開始/下一題/新回合）的點擊事件
+         */
+        function handleControlButtonClick() {
+            const currentState = controlButton.textContent; // 獲取按鈕當前的文字
+
+            // 根據按鈕文字執行不同操作
+            if (currentState === '開始遊戲') {
+                startNewRound(); // 開始新遊戲的第一回合
+            } else if (currentState === '下一題') {
+                currentQuestionIndex++; // 問題索引加一
+                // 檢查是否還有下一題
+                if (currentQuestionIndex < QUESTIONS_PER_ROUND) {
+                    displayQuestion(); // 顯示下一題
+                } else {
+                    // 所有題目回答完畢，顯示回合總結
+                    displayRoundSummary();
+                }
+            } else if (currentState === '開始新回合') {
+                startNewRound(); // 開始一個新的回合
+            }
+        }
+
+        /**
+         * 顯示回合結束後的總結資訊
+         */
+        function displayRoundSummary() {
+            quizArea.classList.add('hidden'); // 隱藏問題和選項區域
+            roundSummary.classList.remove('hidden'); // 顯示總結區域
+            summaryList.innerHTML = ''; // 清空上一回合的總結列表
+
+            // 遍歷本回合的所有問題，生成總結列表項
+            questionsInRound.forEach((q, index) => {
+                const li = document.createElement('li'); // 創建列表項
+
+                // 顯示問題
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('summary-question');
+                // 創建臨時 div 以去除問題文字中的 HTML 標籤
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = q.questionText;
+                questionDiv.textContent = `${index + 1}. ${tempDiv.textContent || tempDiv.innerText || ""}`; // 顯示題號和純文本問題
+
+                // 顯示用戶答案
+                const userAnswerDiv = document.createElement('div');
+                userAnswerDiv.classList.add('summary-user-answer');
+                userAnswerDiv.textContent = `你的答案：${q.userAnswer || '未回答'}`; // 顯示用戶答案，如果未回答則提示
+                // 根據是否答對添加不同樣式
+                if (q.isCorrect) {
+                    userAnswerDiv.classList.add('correct');
+                } else {
+                    userAnswerDiv.classList.add('incorrect');
+                }
+
+                // 顯示正確答案
+                const correctAnswerDiv = document.createElement('div');
+                correctAnswerDiv.classList.add('summary-answer');
+                correctAnswerDiv.textContent = `正確答案：${q.correctAnswer}`;
+
+                // 將問題和用戶答案添加到列表項
+                li.appendChild(questionDiv);
+                li.appendChild(userAnswerDiv);
+                // 只有在用戶答錯時，才額外顯示正確答案
+                if (!q.isCorrect) {
+                     li.appendChild(correctAnswerDiv);
+                }
+
+                summaryList.appendChild(li); // 將列表項添加到總結列表
+            });
+
+            // 顯示回合結束訊息和總分
+            showMessage(`回合 ${round} 結束！您的總得分是：${score}`, 'success');
+            // 將控制按鈕文字改為「開始新回合」，並啟用
+            controlButton.textContent = '開始新回合';
+            controlButton.disabled = false;
+        }
+
+
+        /**
+         * 更新介面上的分數顯示
+         */
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `分數：${score}`;
+        }
+
+        /**
+         * 更新介面上的回合數顯示
+         */
+        function updateRoundDisplay() {
+            roundDisplay.textContent = `回合：${round}`;
+        }
+
+        /**
+         * 更新介面上的題號顯示 (例如 "題目：1 / 10")
+         */
+        function updateQuestionNumberDisplay() {
+            // 如果遊戲未開始 (round === 0)，顯示 0/10
+            // 否則，顯示當前題號 (索引+1)，但不超過總題數
+            const displayIndex = round === 0 ? 0 : Math.min(currentQuestionIndex + 1, QUESTIONS_PER_ROUND);
+            questionNumberDisplay.textContent = `題目：${displayIndex} / ${QUESTIONS_PER_ROUND}`;
+        }
+
+        /**
+        * 在訊息框顯示訊息
+        * @param {string} text - 要顯示的文字
+        * @param {'info'|'success'|'error'} type - 訊息類型，影響樣式
+        */
+        function showMessage(text, type = 'info') {
+            messageBox.textContent = text;
+            // 根據訊息類型設定不同的 CSS class
+            messageBox.className = `message-box w-full max-w-md message-${type}`;
+        }
+
+
+        // --- 事件監聽 ---
+        // 為主控制按鈕添加點擊事件監聽器
+        controlButton.addEventListener('click', handleControlButtonClick);
+
+        // --- 遊戲初始化 ---
+        // 當 DOM 完全載入後執行初始化操作
+        document.addEventListener('DOMContentLoaded', () => {
+             // 初始化介面顯示
+             updateScoreDisplay();
+             updateRoundDisplay();
+             updateQuestionNumberDisplay(); // 初始化題號顯示為 0/10
+        });
+
+    </script>
+
+</body>
+</html>
